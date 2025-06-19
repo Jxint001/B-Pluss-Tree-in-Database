@@ -88,7 +88,28 @@ INDEX_TEMPLATE_ARGUMENTS
 auto BPLUSTREE_TYPE::Insert(const KeyType& key, const ValueType& value,
                             Transaction* txn)  ->  bool
 {
-  //Your code here
+  if (this->IsEmpty()) {
+    /* Create a leaf as root. */
+    page_id_t leaf_id;
+    auto page = this->bpm_->NewPageGuarded(&leaf_id);
+    auto new_page = reinterpret_cast<BPlusTreePage*>(page.template AsMut<BPlusTreePage>());
+    new_page->SetPageType(IndexPageType::LEAF_PAGE);
+
+    /* Necessary initialization. */
+    //page.Drop();
+    auto leaf_page = reinterpret_cast<BPlusTreeLeafPage<KeyType, ValueType, KeyComparator>*>(new_page);
+    leaf_page->SetSize(1);
+    //leaf_page->SetMaxSize(this->leaf_max_size_);
+
+    /* Insert the pair. */
+    leaf_page->SetAt(0, key, value);
+
+    /* Change the root page id to its real id. */
+    WritePageGuard root_guard = this->bpm_->FetchPageWrite(this->header_page_id_);
+    auto root_header_page = root_guard.template AsMut<BPlusTreeHeaderPage>();
+    root_header_page->root_page_id_ = leaf_id;
+    // std::cout << "i set the root page id as: " << root_header_page->root_page_id_ << std::endl;
+  }
   return true;
 }
 

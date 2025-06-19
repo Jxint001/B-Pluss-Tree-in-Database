@@ -12,6 +12,7 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <iostream>
 
 #include "buffer/buffer_pool_manager.h"
 #include "gtest/gtest.h"
@@ -26,6 +27,7 @@ using bustub::DiskManagerUnlimitedMemory;
 
 TEST(BPlusTreeTests, InsertTest1)
 {
+  std::cout << "this is test1 in insert" << std::endl;
   // create KeyComparator and index schema
   auto key_schema = ParseCreateStatement("a bigint");
   GenericComparator<8> comparator(key_schema.get());
@@ -50,9 +52,14 @@ TEST(BPlusTreeTests, InsertTest1)
   index_key.SetFromInteger(key);
   tree.Insert(index_key, rid, transaction);
 
+  std::cout << "insert root finished" << std::endl;
+
   auto root_page_id = tree.GetRootPageId();
+  //std::cout << "before fetch" << std::endl;
+  //std::cout << "root_page_id is: " << root_page_id << std::endl;
   auto root_page =
       reinterpret_cast<BPlusTreePage*>(bpm->FetchPage(root_page_id)->GetData());
+  //std::cout << "end fetch" << std::endl;
   ASSERT_NE(root_page, nullptr);
   ASSERT_TRUE(root_page->IsLeafPage());
 
