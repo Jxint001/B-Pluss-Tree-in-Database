@@ -114,7 +114,6 @@ class BPlusTreeInternalPage : public BPlusTreePage
   private:
   // Flexible array member for page data.
   MappingType array_[0];
-  // #define MappingType std::pair<KeyType, ValueType>
 };
 
 }  // namespace bustub

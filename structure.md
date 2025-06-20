@@ -77,6 +77,7 @@ src/storage/index/b_plus_tree.cpp
 Usual test files are in test\storage  
 
 ## Note
+```cpp
 INDEX_TEMPLATE_ARGUMENTS
 void B_PLUS_TREE_LEAF_PAGE_TYPE::Init(int max_size)
 {
@@ -84,4 +85,15 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::Init(int max_size)
   SetSize(0);
   SetMaxSize(max_size);
   SetNextPageId(INVALID_PAGE_ID);
-}
+}  
+```
+When you do reinterpret_cast to a page, it's `char* data_` has enough space for reinterpretation.  
+
+BinaryFind function returns the last position in leaf/ internal page that <= key.  
+- If all leafkey > key, returns -1.
+- If all internalkey > key, returns 0 (use the first child pointer).
+- If all internalkey < key, returns the last index (use the last child pointer).
+
+Note the cur_guard in insertion.  
+
+SetAt do not change current size!  

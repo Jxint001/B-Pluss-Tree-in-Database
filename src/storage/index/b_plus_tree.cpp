@@ -68,8 +68,26 @@ auto BPLUSTREE_TYPE::GetValue(const KeyType& key,
                               std::vector<ValueType>* result, Transaction* txn)
      ->  bool
 {
-  //Your code here
-  return true;
+  ReadPageGuard cur_guard = this->bpm_->FetchPageRead(this->header_page_id_);
+  auto page = cur_guard.template As<BPlusTreePage>();
+  cur_guard.Drop();
+
+  /* Go to the corresponding leaf page. */
+  while (!page->IsLeafPage()) {
+    auto internal = reinterpret_cast<const BPlusTreeInternalPage<KeyType, page_id_t, KeyComparator>*>(page);
+    int idx = BinaryFind(internal, key);
+    page_id_t child_page_id = internal->ValueAt(idx);
+    cur_guard = bpm_->FetchPageRead(child_page_id);
+    page = cur_guard.template As<BPlusTreePage>();
+    cur_guard.Drop();
+  }
+
+  /* Find key in the leaf. */
+  auto leaf = reinterpret_cast<const BPlusTreeLeafPage<KeyType, ValueType, KeyComparator>*>(page);
+  int idx = BinaryFind(leaf, key);
+  if (idx == -1 || comparator_(leaf->KeyAt(idx), key))  return false;
+  result->push_back(leaf->ValueAt(idx));
+  return false;
 }
 
 /*****************************************************************************
@@ -92,24 +110,90 @@ auto BPLUSTREE_TYPE::Insert(const KeyType& key, const ValueType& value,
     /* Create a leaf as root. */
     page_id_t leaf_id;
     auto page = this->bpm_->NewPageGuarded(&leaf_id);
-    auto new_page = reinterpret_cast<BPlusTreePage*>(page.template AsMut<BPlusTreePage>());
+    page.UpgradeWrite();
+    auto new_page = page.template AsMut<BPlusTreePage>();
     new_page->SetPageType(IndexPageType::LEAF_PAGE);
 
     /* Necessary initialization. */
-    //page.Drop();
     auto leaf_page = reinterpret_cast<BPlusTreeLeafPage<KeyType, ValueType, KeyComparator>*>(new_page);
     leaf_page->SetSize(1);
     //leaf_page->SetMaxSize(this->leaf_max_size_);
 
     /* Insert the pair. */
     leaf_page->SetAt(0, key, value);
+    page.Drop();
 
     /* Change the root page id to its real id. */
     WritePageGuard root_guard = this->bpm_->FetchPageWrite(this->header_page_id_);
     auto root_header_page = root_guard.template AsMut<BPlusTreeHeaderPage>();
     root_header_page->root_page_id_ = leaf_id;
-    // std::cout << "i set the root page id as: " << root_header_page->root_page_id_ << std::endl;
+    root_guard.Drop();
+    return true;
   }
+
+  ReadPageGuard cur_guard = this->bpm_->FetchPageRead(this->header_page_id_);
+  auto page = cur_guard.template As<BPlusTreePage>();
+  cur_guard.Drop();
+
+  /* Go to the corresponding leaf page. */
+  //std::vector<const BPlusTreePage*> path;
+  std::vector<std::pair<ReadPageGuard*, int> >path;
+  while (!page->IsLeafPage()) {
+    auto internal = reinterpret_cast<const BPlusTreeInternalPage<KeyType, page_id_t, KeyComparator>*>(page);
+    int idx = BinaryFind(internal, key);
+    page_id_t child_page_id = internal->ValueAt(idx);
+
+    cur_guard = bpm_->FetchPageRead(child_page_id);
+    page = cur_guard.template As<BPlusTreePage>();
+    path.push_back({&cur_guard, idx});
+    if (!page->IsLeafPage()) {cur_guard.Drop(); }
+  }
+
+  /* Try to insert in leaf. */
+  auto leaf = reinterpret_cast<const BPlusTreeLeafPage<KeyType, ValueType, KeyComparator>*>(page);
+  int idx = BinaryFind(leaf, key);
+  if (idx != -1 || !comparator_(leaf->KeyAt(idx), key)) {cur_guard.Drop();  return false; } /* Key already exists, do nothing. */
+  
+  /* No split. */
+  if (leaf->GetSize() < leaf->GetMaxSize()) {
+    WritePageGuard modify = bpm_->FetchPageWrite(cur_guard.PageId());
+    cur_guard.Drop();
+    auto modify_leaf = modify.template AsMut<BPlusTreeLeafPage<KeyType, ValueType, KeyComparator>>();
+    modify_leaf->IncreaseSize(1);
+    int cursize = modify_leaf->GetSize();
+
+    for (int i = cursize - 1; i >= idx + 2; --i) {
+      modify_leaf->SetAt(i, modify_leaf->KeyAt(i - 1), modify_leaf->ValueAt(i - 1));
+    }
+
+    /* Insert at idx + 1. */
+    modify_leaf->SetAt(idx + 1, key, value);
+    modify.Drop();
+    return true;
+  }
+
+  /* Split from bottom to top. */
+  /* Split leaf. */
+  page_id_t new_leaf_id;
+  auto new_leaf_gurad = bpm_->NewPageGuarded(&new_leaf_id);
+  new_leaf_gurad.UpgradeWrite();
+  auto new_page = new_leaf_gurad.template AsMut<BPlusTreePage>();
+  new_page->SetPageType(IndexPageType::LEAF_PAGE);
+  auto right_page = reinterpret_cast<BPlusTreeLeafPage<KeyType, ValueType, KeyComparator>*>(new_page);
+  /* Set the new leaf page as the right page. */
+  int up = leaf->GetMaxSize() >> 1;  /* Move from up to the last. */
+  int maxsize = leaf->GetSize();
+  right_page->SetSize(maxsize - up);
+  for (int i = up; i < maxsize; ++i) {
+    right_page->SetAt(i - up, leaf->KeyAt(i), leaf->ValueAt(i));
+  }
+  /* Change (left) leaf accordingly. */
+  WritePageGuard leaf_guard = bpm_->FetchPageWrite(cur_guard.PageId());
+  cur_guard.Drop();
+  auto leaf_page = leaf_guard.template AsMut<BPlusTreePage>();
+  auto left_page = reinterpret_cast<BPlusTreeLeafPage<KeyType, ValueType, KeyComparator>*>(leaf_page);
+  left_page->SetSize(up);
+  
   return true;
 }
 

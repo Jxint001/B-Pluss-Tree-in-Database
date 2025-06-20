@@ -1,10 +1,15 @@
 # Project5 : B+ tree in Database
 
-这是 "CS1959 (2023 - 2024 - 2) —— 程序设计与数据结构 II" 课程的第 5 个 project: 实现数据库中的 B+ 树。
+> 
+>
+> 本次的Readme有关B+树以及数据库相关知识点的内容来自由TWL学长，并改编自其版本。
+
+这是 "CS1963 (2024 - 2025 - 2) —— 程序设计与数据结构 II" 课程的第 5 个 project: 实现数据库中的 B+ 树。
 
 在这次 project 中， 我们会为 bustub 关系型数据库编写 B+ 树索引。完成本次 project 不需要具备额外的数据库相关知识。
 
-DDL : 第 18 周周六晚，`2024 年 6 月 22 日 23:59` 
+DDL : TBD
+
 
 # 基础知识
 
@@ -701,11 +706,36 @@ class Context {
 # 测试方法
 
 ## 本地测试
+==**建议使用Ubuntu22.04或20.04**==
+### 使用Clion的集成功能（推荐）
+
+如果你正确地将整个项目文件夹导入Clion，那么其应该将会自动识别其中的CMakelist，并识别出其中的ctest。
+
+那么你只需将当前的配置设置为对应的ctest，运行即可（请确保工具链为Linux、WSL或者Macos环境的,以及有最基本的构建工具）。
+
+若环境缺失，请先运行：
+
+```shell
+sudo build_support/packages.sh # Linux 环境请执行这个 仅限Ubuntu
+build_support/packages.sh # macOS 可以直接这样执行
+# Windows 环境请使用 wsl 或者虚拟机
+```
+
+你所需要运行的测试有：
+
+```
+b_plus_tree_insert_test
+b_plus_tree_delete_test
+b_plus_tree_contention_test
+b_plus_tree_concurrent_test
+```
+
+### 命令行
 
 请到该项目的根目录执行
 
 ```shell
-sudo build_support/packages.sh # Linux 环境请执行这个
+sudo build_support/packages.sh # Linux 环境请执行这个 仅限Ubuntu
 build_support/packages.sh # macOS 可以直接这样执行
 # Windows 环境请使用 wsl 或者虚拟机
 
@@ -741,14 +771,14 @@ cd build #进入 build 目录， 如果已经在 build 目录请忽略
 ``` python
 ./test/b_plus_tree_insert_test              45 分
 ./test/b_plus_tree_delete_test              45 分
-./test/b_plus_tree_contention_test          25 分
-./test/b_plus_tree_concurrent_test          25 分
+------------------------------------------------
+./test/b_plus_tree_contention_test          
+./test/b_plus_tree_concurrent_test          5 分
+------------------------------------------------
 Code Review                                 10 分
 ```
 
-满分上限为 __120__ 分，加满为止。 溢出 __100__ 分的部分抵消之前大作业、小作业所扣分数。
-
-如果你在 `Project3 : Set` 中正确完成了内存版本的 B+ 树， 可以选择不做本次 project 并通知助教, 本次 project 分数以 80 分计入。
+满分上限为 __105__ 分，加满为止。 溢出 __100__ 分的部分抵消之前大作业、小作业所扣分数。
 
 # 试一试你自己的数据库！(optional)
 
@@ -765,7 +795,7 @@ make -j$(nproc) shell
 ```shell
 bustub> \dt
 +-----+----------------------------+------------------------------------------------------------------------------------------+
-| oid | name                       | cols                                                                                     |
+| oid | name                       | cols                                                                                     
 +-----+----------------------------+------------------------------------------------------------------------------------------+
 | 23  | test_2                     | (colA:INTEGER, colB:INTEGER, colC:INTEGER)                                               |
 | 21  | test_simple_seq_2          | (col1:INTEGER, col2:INTEGER)                                                             |
