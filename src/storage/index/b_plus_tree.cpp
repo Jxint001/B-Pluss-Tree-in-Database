@@ -23,7 +23,6 @@
 
 namespace bustub
 {
-void hello(){std::cout << "hello" << std::endl;}
 template <typename KeyType, typename page_id_t, typename KeyComparator>
 bool check_internal_page(BPlusTreeInternalPage<KeyType, page_id_t, KeyComparator>* page, const KeyComparator& cmp) {
   int size = page->GetSize();
@@ -84,7 +83,6 @@ auto BPLUSTREE_TYPE::GetValue(const KeyType& key,
      ->  bool
 {
   ReadPageGuard cur_guard = this->bpm_->FetchPageRead(this->GetRootPageId());
-  //std::cout << "fetched root" << std::endl;
   auto page = cur_guard.template As<BPlusTreePage>();
   
   /* Go to the corresponding leaf page. */
@@ -94,7 +92,6 @@ auto BPLUSTREE_TYPE::GetValue(const KeyType& key,
     page_id_t child_page_id = internal->ValueAt(idx);
     auto parent_guard = std::move(cur_guard);
     cur_guard = bpm_->FetchPageRead(child_page_id);
-    //std::cout << "fetched " << child_page_id << std::endl;
     page = cur_guard.template As<BPlusTreePage>();
     parent_guard.Drop();
   }
@@ -104,10 +101,7 @@ auto BPLUSTREE_TYPE::GetValue(const KeyType& key,
   /* Find key in the leaf. */
   auto leaf = reinterpret_cast<const BPlusTreeLeafPage<KeyType, ValueType, KeyComparator>*>(page);
   int idx = BinaryFind(leaf, key);
-  // std::cout << leaf->GetMaxSize() << " " << leaf->GetSize() << std::endl;
-  // std::cout << "keys in leaf " << leaf->KeyAt(0) << " " << leaf->KeyAt(1) << std::endl;
-  if (idx == -1 || comparator_(leaf->KeyAt(idx), key)) {//std::cout << "do not find key: " << key << std::endl; std::cout << idx << std::endl; 
-  return false;}
+  if (idx == -1 || comparator_(leaf->KeyAt(idx), key)) {return false; }
   result->push_back(leaf->ValueAt(idx));
   return true;
 }
@@ -125,23 +119,19 @@ auto BPLUSTREE_TYPE::GetValue(const KeyType& key,
 
 INDEX_TEMPLATE_ARGUMENTS
 auto BPLUSTREE_TYPE::BasicInsert(const KeyType &key, const ValueType &value, Transaction *txn, Context & ctx) -> bool {
-  //std::cout << "BasicInsert" << std::endl;
   /* Add the root to write guard set. */
   std::deque<std::pair<page_id_t, int> > path;
 
   page_id_t cur_id = ctx.root_page_id_;
-  std::cout << "cur_id: " << cur_id << std::endl;
   ctx.write_set_.push_back(bpm_->FetchPageWrite(cur_id));
     
 
   if (ctx.write_set_.back().template As<BPlusTreePage>()->IsLeafPage()) {path.push_back({cur_id, -1}); }
   
-  //int temp_last_id = -1;
   while (true) {
     auto &wg = ctx.write_set_.back();
     auto page = wg.template As<BPlusTreePage>();
     if (page->IsLeafPage()) {
-      //std::cout << wg.PageId() << " " << ctx.root_page_id_ << std::endl;
       if (wg.PageId() != ctx.root_page_id_) {
       path.push_back({wg.PageId(), -1});
       }
@@ -149,9 +139,8 @@ auto BPLUSTREE_TYPE::BasicInsert(const KeyType &key, const ValueType &value, Tra
 
     auto internal = reinterpret_cast<const InternalPage*>(page);
     int idx = BinaryFind(internal, key);
-    //if (cur_id == ctx.root_page_id_) { 
-      path.push_back({wg.PageId(), idx});
-    //}
+    path.push_back({wg.PageId(), idx});
+
     page_id_t child_page_id = internal->ValueAt(idx);
 
     WritePageGuard child_guard = bpm_->FetchPageWrite(child_page_id);
@@ -169,25 +158,10 @@ auto BPLUSTREE_TYPE::BasicInsert(const KeyType &key, const ValueType &value, Tra
     }
 
     ctx.write_set_.push_back(std::move(child_guard));
-    //path.push_back({child_page_id, temp_last_id});
-  //  temp_last_id = idx;
     cur_id = child_page_id;
   }
 
-  if (ctx.write_set_.size() != path.size()) {
-    std::cout << "path.size(): " << path.size() << " write_set_.size(): " << ctx.write_set_.size() << std::endl;
-  }
-   assert(ctx.write_set_.size() == path.size());
-  /* Check whether path and ctx.write_set_ are in sync. */
-  int temp_i = 0;
-  for (auto& wg:ctx.write_set_) {
-    assert(wg.PageId() == path[temp_i].first);
-    std::cout << "pageid: " << path[temp_i].first << " child_idx: " << path[temp_i].second << std::endl;
-    temp_i++;
-  }
-
   /* Get leaf. */
-  //int get_wg = ctx.write_set_.size() - 1;
   WritePageGuard leaf_guard = std::move(ctx.write_set_.back());  ctx.write_set_.pop_back();
   path.pop_back();
 
@@ -196,14 +170,12 @@ auto BPLUSTREE_TYPE::BasicInsert(const KeyType &key, const ValueType &value, Tra
   int pos = idx + 1;
   if (pos > 0 && comparator_(leaf->KeyAt(pos - 1), key) == 0) {
     leaf_guard.Drop();
-    // ctx.header_page_->Drop();
     return false;
   }
 
   /* Split leaf. */
   page_id_t right_leaf_id;
   auto new_leaf_gurad = std::move(bpm_->NewPageGuarded(&right_leaf_id)).UpgradeWrite();
-//  std::cout << "new page: " << right_leaf_id << std::endl;
 
   auto right_page = new_leaf_gurad.template AsMut<LeafPage>();
   right_page->Init(leaf_max_size_);
@@ -242,7 +214,6 @@ auto BPLUSTREE_TYPE::BasicInsert(const KeyType &key, const ValueType &value, Tra
 
   /* Insert upward. */
   KeyType right_key = right_page->KeyAt(0);
-  //left_key = leaf->KeyAt(0);
   bool splitup = true;
 
   bpm_->FlushPage(right_leaf_id);
@@ -250,20 +221,16 @@ auto BPLUSTREE_TYPE::BasicInsert(const KeyType &key, const ValueType &value, Tra
   leaf_guard.Drop();
 
   while (splitup && !path.empty()) {
-     //std::cout << "right_key: " << right_key << std::endl;
     auto [id, child_idx] = path.back();  path.pop_back();
     /* Insert one more key to the parent. */
     WritePageGuard parent_guard = std::move(ctx.write_set_.back());  ctx.write_set_.pop_back();
-    //WritePageGuard& parent_guard = ctx.write_set_[get_wg--];
 
     auto modify = parent_guard.template AsMut<BPlusTreePage>();
-    //assert(modify->IsLeafPage() == 0);
     auto modify_parent = reinterpret_cast<InternalPage*>(modify);
     
     if (modify_parent->GetSize() < modify_parent->GetMaxSize()) {
       modify_parent->IncreaseSize(1);
       int cursize = modify_parent->GetSize();
-      std::cout << "child_idx + 1: " << child_idx + 1 << std::endl;
       for (int i = cursize - 1; i > child_idx + 1; --i) {
         modify_parent->SetKeyAt(i, modify_parent->KeyAt(i - 1));
         modify_parent->SetValueAt(i, modify_parent->ValueAt(i - 1));
@@ -319,26 +286,7 @@ auto BPLUSTREE_TYPE::BasicInsert(const KeyType &key, const ValueType &value, Tra
     right_key = tmp_right_key;
 
     right_leaf_id = tmp_id;
-   // left_key = modify_parent->KeyAt(0);
     left_id = parent_guard.PageId();
-
-    // ok = check_internal_page<KeyType, page_id_t, KeyComparator>(modify_parent, comparator_);
-    // assert(ok);
-    // ok = check_internal_page<KeyType, page_id_t, KeyComparator>(parent_right_page, comparator_);
-    // assert(ok);
-
-  //     std::cout << "left start print" << std::endl;
-  // for (int i = 0; i < modify_parent->GetSize(); ++i) {
-  //   std::cout <<modify_parent->ValueAt(i) << " ";
-  // }
-  // std::cout << std::endl<< "left end print" << std::endl;
-  //  std::cout << "right start print" << std::endl;
-  // for (int i = 0; i < parent_right_page->GetSize(); ++i) {
-  //   std::cout << parent_right_page->ValueAt(i) << " ";
-  // }
-  // std::cout << std::endl<< "left end print" << std::endl;
-  // std::cout << "left parent page id: " << left_id << " right parent page id: " << right_leaf_id << std::endl;
-  // std::cout << std::endl<<"end print" << std::endl;
 
     bpm_->FlushPage(tmp_id);
     new_parent_guard.Drop();
@@ -347,18 +295,14 @@ auto BPLUSTREE_TYPE::BasicInsert(const KeyType &key, const ValueType &value, Tra
 
   /* If root is full, increase tree height. */
   if (splitup) {
-    // std::cout << "split root" << std::endl;
-    //  std::cout << "right_key: " << right_key << std::endl;
     page_id_t new_root_id;
     auto new_root_guard = std::move(bpm_->NewPageGuarded(&new_root_id)).UpgradeWrite();
-//    std::cout << "new page: " << new_root_id << std::endl;
 
     auto newpage = new_root_guard.template AsMut<BPlusTreePage>();
     auto new_root_page = reinterpret_cast<BPlusTreeInternalPage<KeyType, page_id_t, KeyComparator>*>(newpage);
     new_root_page->Init(internal_max_size_);
     
     new_root_page->SetSize(2);
-    //new_root_page->SetKeyAt(0, left_key);
     new_root_page->SetValueAt(0, left_id);
     assert(left_id != 0);
     new_root_page->SetKeyAt(1, right_key);
@@ -382,18 +326,15 @@ INDEX_TEMPLATE_ARGUMENTS
 auto BPLUSTREE_TYPE::Insert(const KeyType& key, const ValueType& value,
                             Transaction* txn)  ->  bool
 {
-  //std::cout << "Insert" << std::endl;
   Context ctx;
   auto header_page = bpm_->FetchPageRead(header_page_id_);
   ctx.root_page_id_ = header_page.template As<BPlusTreeHeaderPage>()->root_page_id_;
   header_page.Drop();
-  //std::cout << "root: " << ctx.root_page_id_ << std::endl;
 
   if (ctx.root_page_id_ == INVALID_PAGE_ID) {
     /* Create a leaf as root. */
     page_id_t leaf_id;
     auto page = std::move(bpm_->NewPageGuarded(&leaf_id)).UpgradeWrite();
-  // std::cout << "new page: " << leaf_id << std::endl;
     auto leaf_page = page.template AsMut<LeafPage>();
 
     /* Necessary initialization. */
@@ -428,16 +369,6 @@ auto BPLUSTREE_TYPE::Insert(const KeyType& key, const ValueType& value,
     auto internal = reinterpret_cast<const InternalPage*>(page);
     int idx = BinaryFind(internal, key);
     page_id_t child_page_id = internal->ValueAt(idx);
-    
-    if (child_page_id == 0) {
-      std::cout << "idx: " << idx << std::endl;
-      std::cout << "key: " << key << std::endl;
-      std::cout << "Size: " << internal->GetSize() << " MaxSize: " << internal->GetMaxSize() << std::endl;
-      for (int i = 0; i < internal->GetSize(); ++i) {
-        std::cout << "key: " << internal->KeyAt(i) << "  page: " << internal->ValueAt(i) << std::endl;
-      }
-    }
-    assert(child_page_id != 0);
 
     ReadPageGuard child_page = bpm_->FetchPageRead(child_page_id);
     ctx.read_set_.push_back(std::move(child_page));
@@ -474,14 +405,12 @@ auto BPLUSTREE_TYPE::Insert(const KeyType& key, const ValueType& value,
     /* Insert at idx + 1. */
     leaf->SetAt(idx + 1, key, value);
     leaf_write.Drop();
-    //ctx.header_page_->Drop();
     return true;
   }
 
   /* Have to split from bottom to top. */
   for (auto &rg : ctx.read_set_) rg.Drop();
   ctx.read_set_.clear();
-  //ctx.header_page_->Drop();
 
   return BasicInsert(key, value, txn, ctx);
 }
@@ -540,7 +469,6 @@ INDEX_TEMPLATE_ARGUMENTS
 auto BPLUSTREE_TYPE::BinaryFind(const InternalPage* internal_page,
                                 const KeyType& key)  ->  int
 {
-  //std::cout << "binaryfinding internal " << key << std::endl;
   int l = 1;
   int r = internal_page -> GetSize() - 1;
   while (l < r)
@@ -563,8 +491,6 @@ auto BPLUSTREE_TYPE::BinaryFind(const InternalPage* internal_page,
 
   return r;
 }
-
-//if (comparator_(key, internal_page->KeyAt(1)))  return 0;
 
 /*
  * Input parameter is void, find the leftmost leaf page first, then construct

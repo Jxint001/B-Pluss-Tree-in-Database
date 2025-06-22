@@ -85,7 +85,6 @@ class DiskManagerUnlimitedMemory : public DiskManager
   void WritePage(page_id_t page_id, const char* page_data) override
   {
     ProcessLatency(page_id);
-    std::cout << "try to write page: " << page_id << std::endl;
 
     std::unique_lock<std::mutex> l(mutex_);
     if (!thread_id_.has_value())
@@ -94,7 +93,6 @@ class DiskManagerUnlimitedMemory : public DiskManager
     }
     if (page_id >= static_cast<int>(data_.size()))
     {
-      std::cout << "wrt page " << page_id << " increase size to " << page_id + 1 << std::endl;
       data_.resize(page_id + 1);
     }
     if (data_[page_id] == nullptr)
@@ -126,9 +124,6 @@ class DiskManagerUnlimitedMemory : public DiskManager
     }
     if (page_id >= static_cast<int>(data_.size()) || page_id < 0)
     {
-      std::cout << "HELLO" << std::endl;
-      if (page_id < 0) {std::cout << "page_id < 0" << std::endl; }
-      std::cout << "data_.size(): " << data_.size() << std::endl;
       fmt::println(stderr, "page {} not in range", page_id);
       std::terminate();
       return;
