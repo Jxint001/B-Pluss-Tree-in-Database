@@ -73,6 +73,7 @@ class BPlusTree {
   auto IsEmpty() const -> bool;
 
   // Insert a key-value pair into this B+ tree.
+  auto BasicInsert(const KeyType &key, const ValueType &value, Transaction *txn, Context& ctx) -> bool;
   auto Insert(const KeyType &key, const ValueType &value, Transaction *txn = nullptr) -> bool;
 
   // Remove a key and its value from this B+ tree.

@@ -97,3 +97,9 @@ BinaryFind function returns the last position in leaf/ internal page that <= key
 Note the cur_guard in insertion.  
 
 SetAt do not change current size!  
+
+Perhaps I have to keep page guard in path (in insert).  
+
+
+
+/home/empty--terrain/BPT/src/include/storage/disk/disk_manager_memory.h

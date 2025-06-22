@@ -16,6 +16,8 @@
 #include <shared_mutex>
 
 #include "common/macros.h"
+#include <iostream>
+#include <thread>
 
 namespace bustub
 {
@@ -29,22 +31,38 @@ class ReaderWriterLatch
   /**
    * Acquire a write latch.
    */
-  void WLock() { mutex_.lock(); }
+  void WLock() { 
+      //std::cout<<"[WLock] page_latch="<<this<<" thread="<<std::this_thread::get_id()<<std::endl;
+    mutex_.lock(); 
+      //std::cout<<"[WLock✓] page_latch="<<this<<std::endl;
+  }
 
   /**
    * Release a write latch.
    */
-  void WUnlock() { mutex_.unlock(); }
+  void WUnlock() { 
+   // std::cout<<"[WLock] page_latch="<<this<<" thread="<<std::this_thread::get_id()<<std::endl;
+    mutex_.unlock(); 
+   // std::cout<<"[WLock×] page_latch="<<this<<"UnLatched"<<std::endl;
+  }
 
   /**
    * Acquire a read latch.
    */
-  void RLock() { mutex_.lock_shared(); }
+  void RLock() { 
+    //std::cout<<"[RLock] page_latch="<<this<<" thread="<<std::this_thread::get_id()<<std::endl;
+    mutex_.lock_shared(); 
+    //std::cout<<"[RLock✓] page_latch="<<this<<std::endl;
+  }
 
   /**
    * Release a read latch.
    */
-  void RUnlock() { mutex_.unlock_shared(); }
+  void RUnlock() { 
+    //std::cout<<"[RLock] page_latch="<<this<<" thread="<<std::this_thread::get_id()<<std::endl;
+    mutex_.unlock_shared(); 
+     //std::cout<<"[RLock×] page_latch="<<this<<"UnLatched"<<std::endl;
+  }
 
   private:
   std::shared_mutex mutex_;

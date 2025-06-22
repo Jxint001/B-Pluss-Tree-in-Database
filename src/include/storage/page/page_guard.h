@@ -32,7 +32,7 @@ class BasicPageGuard
 
   auto UpgradeWrite() -> WritePageGuard;
 
-  auto PageId() -> page_id_t { return page_->GetPageId(); }
+  auto PageId() const -> page_id_t { return page_->GetPageId(); }
 
   auto GetData() -> const char* { return page_->GetData(); }
 
@@ -44,6 +44,10 @@ class BasicPageGuard
 
   auto GetDataMut() -> char*
   {
+   // std::cout << "Basic GetDataMut" << std::endl;
+    // if (this->PageId() == 12) {
+    //     std::cout << "[DIRTY] GetDataMut on page " << page_->GetPageId() << std::endl;
+    // }
     is_dirty_ = true;
     return page_->GetData();
   }
@@ -51,6 +55,7 @@ class BasicPageGuard
   template <class T>
   auto AsMut() -> T*
   {
+   // std::cout << "Basic AsMut" << std::endl;
     return reinterpret_cast<T*>(GetDataMut());
   }
 
@@ -110,7 +115,7 @@ class WritePageGuard
 
   ~WritePageGuard();
 
-  auto PageId() -> page_id_t { return guard_.PageId(); }
+  auto PageId() const -> page_id_t { return guard_.PageId(); }
 
   auto GetData() -> const char* { return guard_.GetData(); }
 
@@ -125,6 +130,7 @@ class WritePageGuard
   template <class T>
   auto AsMut() -> T*
   {
+    //std::cout << "AsMut" << std::endl;
     return guard_.AsMut<T>();
   }
 

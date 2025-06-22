@@ -45,7 +45,9 @@ class Page
   ~Page() { delete[] data_; }
 
   /** @return the actual data contained within this page */
-  inline auto GetData() -> char* { return data_; }
+  inline auto GetData() -> char* {
+    // std::cout << "page GetData" << std::endl;
+     return data_; }
 
   /** @return the page id of this page */
   inline auto GetPageId() -> page_id_t { return page_id_; }

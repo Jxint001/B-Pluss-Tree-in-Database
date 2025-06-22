@@ -81,14 +81,28 @@ TEST(BPlusTreeTests, InsertTest2) {
   // create transaction
   auto *transaction = new Transaction(0);
 
-  std::vector<int64_t> keys = {1, 2, 3, 4, 5};
+  //std::vector<int64_t> keys = {1, 2, 3, 4, 5};
+  // std::vector<int64_t> keys = {8, 131568, 755776, 458754, 532888, 219009, 47056, 679018, 679450, 934904, 383589, 519534, 831153, 34580, 53474, 529820, 671301, 7700, 383503, 66858, 417581, 686928, 589110, 930647, 846358, 527048, 91986, 654067, 416094, 701349, 910526, 762370, 262513, 47476, 736248, 328309, 632782, 756581, 991261, 365421, 247095, 982772, 722824, 753526, 651666, 72703};
+  std::vector<int64_t> keys = {1, 10, 37, 20, 24, 11, 4, 30, 31, 44, 17, 21, 40, 3, 6, 23, 29, 2, 16, 7, 19, 32, 25, 43, 41, 22, 9, 28, 18, 33, 42, 39, 13, 5, 35, 14, 26, 38, 46, 15, 12, 45, 34, 36, 27, 8};
+  int t = 0;
   for (auto key : keys) {
+    ++t;
     int64_t value = key & 0xFFFFFFFF;
     rid.Set(static_cast<int32_t>(key >> 32), value);
     index_key.SetFromInteger(key);
-    tree.Insert(index_key, rid, transaction);
+    bool ok = tree.Insert(index_key, rid, transaction);
+    assert(ok == 1);
+      std::cout << "insert " << t << " keys" << std::endl;
+      std::cout << "draw" << std::endl;
+  tree.Print(bpm);
+  std::cout << "end draw" << std::endl;
+  //if (t == 9)  exit(0);
   }
-
+   std::cout << "insert finished" << std::endl;
+  std::cout << "draw" << std::endl;
+  tree.Print(bpm);
+  std::cout << "end draw" << std::endl;
+  //exit(0);
   std::vector<RID> rids;
   for (auto key : keys) {
     rids.clear();
@@ -98,7 +112,9 @@ TEST(BPlusTreeTests, InsertTest2) {
 
     int64_t value = key & 0xFFFFFFFF;
     EXPECT_EQ(rids[0].GetSlotNum(), value);
+    //std::cout << "searched" << std::endl;
   }
+  // std::cout << "Get all value!" << std::endl;
 
   int64_t size = 0;
   bool is_present;
@@ -135,7 +151,7 @@ TEST(BPlusTreeTests, InsertTest3) {
   ASSERT_EQ(page_id, HEADER_PAGE_ID);
 
   // create b+ tree
-  BPlusTree<GenericKey<8>, RID, GenericComparator<8>> tree("foo_pk", header_page->GetPageId(), bpm, comparator);
+  BPlusTree<GenericKey<8>, RID, GenericComparator<8>> tree("foo_pk", header_page->GetPageId(), bpm, comparator, 2, 3);
   GenericKey<8> index_key;
   RID rid;
   auto *transaction = new Transaction(0);
@@ -146,7 +162,13 @@ TEST(BPlusTreeTests, InsertTest3) {
     rid.Set(static_cast<int32_t>(key >> 32), value);
     index_key.SetFromInteger(key);
     tree.Insert(index_key, rid, transaction);
+  //  std::cout << "-----------------" << std::endl;
   }
+  //    std::cout << "insert finished" << std::endl;
+  // std::cout << "draw" << std::endl;
+  // tree.Print(bpm);
+  // std::cout << "end draw" << std::endl;
+  // exit(0);
 
   std::vector<RID> rids;
   for (auto key : keys) {
@@ -206,14 +228,21 @@ TEST(BPlusTreeTests, InsertTest4)
   std::uniform_int_distribution<int64_t> distribution(1, 1000000);
 
   std::vector<int64_t> keys;
+ // int t = 1;
   for (int i = 0; i < 10000; ++i) {
     int64_t key = distribution(generator);
     keys.push_back(key);
+   // std::cout << "inserting: " << key << std::endl;
     int64_t value = key & 0xFFFFFFFF;
     rid.Set(static_cast<int32_t>(key >> 32), value);
     index_key.SetFromInteger(key);
     tree.Insert(index_key, rid, transaction);
+   //  std::cout << t++ << std::endl;
   }
+  // std::cout << "insert finished" << std::endl;
+  //     std::cout << "draw" << std::endl;
+  //   tree.Print(bpm);
+  //   std::cout << "end draw" << std::endl;
 
   for (auto key : keys)
   {
