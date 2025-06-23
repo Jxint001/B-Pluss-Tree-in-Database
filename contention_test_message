@@ -1,0 +1,31 @@
+Running main() from gmock_main.cc
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from BPlusTreeContentionTest
+[ RUN      ] BPlusTreeContentionTest.BPlusTreeContentionBenchmark
+This test will see how your B+ tree performance differs with and without contention.
+If your submission timeout, segfault, or didn't implement lock crabbing, we will manually deduct all concurrent test points (maximum 25).
+left_node_size = 2
+<<< BEGIN
+Normal Access Time: 2969 3278 2993 2899 2975 2991 2826 3300 3021 2997 
+Serialized Access Time: 3221 3053 3599 3241 3060 3259 3207 3156 3189 3176 
+Ratio: 0.940549
+>>> END
+If your above data is an outlier in all submissions (based on statistics and probably some machine-learning), TAs will manually inspect your code to ensure you are implementing lock crabbing correctly.
+[       OK ] BPlusTreeContentionTest.BPlusTreeContentionBenchmark (61478 ms)
+[ RUN      ] BPlusTreeContentionTest.BPlusTreeContentionBenchmark2
+This test will see how your B+ tree performance differs with and without contention.
+If your submission timeout, segfault, or didn't implement lock crabbing, we will manually deduct all concurrent test points (maximum 25).
+left_node_size = 10
+<<< BEGIN2
+Normal Access Time: 2641 2667 2654 2599 2690 2629 2579 2653 2633 2661 
+Serialized Access Time: 2926 2884 2802 3333 3068 2891 2782 2758 2869 3317 
+Ratio: 0.891191
+>>> END2
+If your above data is an outlier in all submissions (based on statistics and probably some machine-learning), TAs will manually inspect your code to ensure you are implementing lock crabbing correctly.
+[       OK ] BPlusTreeContentionTest.BPlusTreeContentionBenchmark2 (55048 ms)
+[----------] 2 tests from BPlusTreeContentionTest (116526 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (116527 ms total)
+[  PASSED  ] 2 tests.

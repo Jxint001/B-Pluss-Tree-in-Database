@@ -138,7 +138,7 @@ auto BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transact
   Context ctx;
   auto header_page = bpm_->FetchPageWrite(header_page_id_);
   ctx.root_page_id_ = header_page.template As<BPlusTreeHeaderPage>()->root_page_id_;
-//  header_page.Drop();
+  //header_page.Drop();
 
   if (ctx.root_page_id_ == INVALID_PAGE_ID) {
     /* Create a leaf as root. */
@@ -152,7 +152,9 @@ auto BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transact
 
     /* Insert the pair. */
     leaf_page->SetAt(0, key, value);
+    //std::cout << "flush leaf_page" << std::endl;
     bpm_->FlushPage(leaf_id);
+    //std::cout << "end flush" << std::endl;
 
     /* Change the root page id to its real id. */
 
@@ -261,7 +263,9 @@ auto BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transact
   KeyType right_key = right_page->KeyAt(0);
   bool splitup = true;
 
+  //std::cout << "flush right_leaf_id" << std::endl;
   bpm_->FlushPage(right_leaf_id);
+  //std::cout << "end flush" << std::endl;
   //new_leaf_gurad.Drop();
   //leaf_guard.Drop();
 
@@ -335,7 +339,9 @@ auto BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transact
     right_leaf_id = tmp_id;
     left_id = parent_guard.PageId();
 
+    //std::cout << "flush tmp_id" << std::endl;
     bpm_->FlushPage(tmp_id);
+    //std::cout << "end flush" << std::endl;
     new_parent_guard.Drop();
     parent_guard.Drop();
   }
@@ -356,12 +362,13 @@ auto BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transact
     new_root_page->SetValueAt(1, right_leaf_id);
     assert(right_leaf_id != 0);
 
+    //std::cout << "flush new_root_id" << std::endl;
     bpm_->FlushPage(new_root_id);
+    //std::cout << "end flush" << std::endl;
     new_root_guard.Drop();
-    {
-      auto header_page = bpm_->FetchPageWrite(header_page_id_);
+    
       header_page.template AsMut<BPlusTreeHeaderPage>()->root_page_id_ = new_root_id;
-    }
+    
   }
 
   for (auto& wg: ctx.write_set_)  wg.Drop();
@@ -428,7 +435,9 @@ page_id_t BPLUSTREE_TYPE::MergeLeaf(WritePageGuard& l_node_guard, WritePageGuard
   for (int j = 0; j < r_node->GetSize(); j++) {
     node->SetAt(j + l_size, r_node->KeyAt(j), r_node->ValueAt(j));
   }
+  //std::cout << "flush node_id" << std::endl;
   bpm_->FlushPage(node_id);
+  //std::cout << "end flush" << std::endl;
 
   EraseFromInternal(parent, x + 1);
   EraseFromInternal(parent, x);
@@ -467,7 +476,9 @@ page_id_t BPLUSTREE_TYPE::MergeInternal(WritePageGuard& l_node_guard, WritePageG
 
   parent->SetKeyAt(x, node->KeyAt(0));
   parent->SetValueAt(x, node_id);
+  //std::cout << "flush node_id 2" << std::endl;
   bpm_->FlushPage(node_id);
+  //std::cout << "end flush" << std::endl;
   return l_node_id;
 }
 
@@ -488,7 +499,7 @@ void BPLUSTREE_TYPE::BorrowFromInternal(InternalPage *l_node, InternalPage *r_no
 INDEX_TEMPLATE_ARGUMENTS
 void BPLUSTREE_TYPE::Remove(const KeyType& key, Transaction* txn) {
   /* Add the root to write guard set. */
-  // std::cout << "Basic" << std::endl;
+  // //std::cout << "Basic" << std::endl;
   Context ctx;
 
   auto header_read = bpm_->FetchPageWrite(header_page_id_);
@@ -546,11 +557,11 @@ void BPLUSTREE_TYPE::Remove(const KeyType& key, Transaction* txn) {
     path.push_back({child_page_id, idx});
     cur_id = child_page_id;
   }
-// std::cout << "---print path---" << std::endl;
+// //std::cout << "---print path---" << std::endl;
 // for (auto & p : path) {
-//   std::cout << "page " << p.first << " is the " << p.second << " child of parent" << std::endl;
+//   //std::cout << "page " << p.first << " is the " << p.second << " child of parent" << std::endl;
 // }
-// std::cout << "---end print path" << std::endl;
+// //std::cout << "---end print path" << std::endl;
 
   /* Get leaf. */
   WritePageGuard leaf_guard = std::move(ctx.write_set_.back());  ctx.write_set_.pop_back();
@@ -994,38 +1005,38 @@ void BPLUSTREE_TYPE::PrintTree(page_id_t page_id, const BPlusTreePage* page)
   if (page -> IsLeafPage())
   {
     auto* leaf = reinterpret_cast<const LeafPage*>(page);
-    std::cout << "Leaf Page: " << page_id << "\tNext: " << leaf -> GetNextPageId() << std::endl;
+    //std::cout << "Leaf Page: " << page_id << "\tNext: " << leaf -> GetNextPageId() << std::endl;
 
     // Print the contents of the leaf page.
-    std::cout << "Contents: ";
+    //std::cout << "Contents: ";
     for (int i = 0; i < leaf -> GetSize(); i++)
     {
-      std::cout << leaf -> KeyAt(i);
+      //std::cout << leaf -> KeyAt(i);
       if ((i + 1) < leaf -> GetSize())
       {
-        std::cout << ", ";
+        //std::cout << ", ";
       }
     }
-    std::cout << std::endl;
-    std::cout << std::endl;
+    //std::cout << std::endl;
+    //std::cout << std::endl;
   }
   else
   {
     auto* internal = reinterpret_cast<const InternalPage*>(page);
-    std::cout << "Internal Page: " << page_id << std::endl;
+    //std::cout << "Internal Page: " << page_id << std::endl;
 
     // Print the contents of the internal page.
-    std::cout << "Contents: ";
+    //std::cout << "Contents: ";
     for (int i = 0; i < internal -> GetSize(); i++)
     {
-      std::cout << internal -> KeyAt(i) << ": " << internal -> ValueAt(i);
+      //std::cout << internal -> KeyAt(i) << ": " << internal -> ValueAt(i);
       if ((i + 1) < internal -> GetSize())
       {
-        std::cout << ", ";
+        //std::cout << ", ";
       }
     }
-    std::cout << std::endl;
-    std::cout << std::endl;
+    //std::cout << std::endl;
+    //std::cout << std::endl;
     for (int i = 0; i < internal -> GetSize(); i++)
     {
       auto guard = bpm_ -> FetchPageBasic(internal -> ValueAt(i));

@@ -38,13 +38,13 @@ bool BPlusTreeLockBenchmarkCall(size_t num_threads, int leaf_node_size,
   // create b+ tree
   BPlusTree<GenericKey<8>, RID, GenericComparator<8>> tree(
       "foo_pk", page_id, bpm, comparator, leaf_node_size, 10);
-
+//std::cout << "created bpt" << std::endl;
   std::vector<std::thread> threads;
 
   const int keys_per_thread = 20000 / num_threads;
   const int keys_stride = 100000;
   std::mutex mtx;
-
+//std::cout << "start insert" << std::endl;
   for (size_t i = 0; i < num_threads; i++)
   {
     auto func = [&tree, &mtx, i, keys_per_thread, with_global_mutex]()
@@ -73,16 +73,20 @@ bool BPlusTreeLockBenchmarkCall(size_t num_threads, int leaf_node_size,
     auto t = std::thread(std::move(func));
     threads.emplace_back(std::move(t));
   }
-
+//std::cout << "end insert" << std::endl;
+//int t = 0;
   for (auto& thread : threads)
   {
     thread.join();
+    //std::cout << ++t << std::endl;
   }
+//std::cout << "joined" << std::endl;
 
   bpm->UnpinPage(HEADER_PAGE_ID, true);
   delete disk_manager;
   delete bpm;
 
+//std::cout << "Goes out of BPlusTreeLockBentchMark" << std::endl;
   return success;
 }
 
@@ -101,9 +105,11 @@ TEST(BPlusTreeContentionTest, BPlusTreeContentionBenchmark)
   std::vector<size_t> time_ms_wo_mutex;
   for (size_t iter = 0; iter < 20; iter++)
   {
+    //std::cout << "iter: " << iter << std::endl;
     bool enable_mutex = iter % 2 == 0;
     auto clock_start = std::chrono::system_clock::now();
     ASSERT_TRUE(BPlusTreeLockBenchmarkCall(32, 2, enable_mutex));
+    //std::cout << "hey" << std::endl;
     auto clock_end = std::chrono::system_clock::now();
     auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(
         clock_end - clock_start);

@@ -1,0 +1,254 @@
+empty--terrain@jxint:~/BPT/build$ gdb --args ./test/b_plus_tree_contention_test   --gtest_filter=BPlusTreeContentionTest.BPlusTreeContentionBenchmark
+GNU gdb (Ubuntu 15.0.50.20240403-0ubuntu1) 15.0.50.20240403-git
+Copyright (C) 2024 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+Type "show copying" and "show warranty" for details.
+This GDB was configured as "x86_64-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<https://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+    <http://www.gnu.org/software/gdb/documentation/>.
+
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from ./test/b_plus_tree_contention_test...
+(gdb) break __cxa_throw
+Breakpoint 1 at 0x4acf0
+(gdb) break BPlusTreeLockBenchmarkCall
+Breakpoint 2 at 0x4d4c4: file /home/empty--terrain/BPT/test/storage/b_plus_tree_contention_test.cpp, line 23.
+(gdb) break BPlusTree<GenericKey<8>,RID,GenericComparator<8>>::Insert
+Function "BPlusTree<GenericKey<8>,RID,GenericComparator<8>>::Insert" not defined.
+Make breakpoint pending on future shared library load? (y or [n]) y
+Breakpoint 3 (BPlusTree<GenericKey<8>,RID,GenericComparator<8>>::Insert) pending.
+(gdb) run
+Starting program: /home/empty--terrain/BPT/build/test/b_plus_tree_contention_test --gtest_filter=BPlusTreeContentionTest.BPlusTreeContentionBenchmark
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Enable debuginfod for this session? (y or [n]) y
+Debuginfod has been enabled.
+To make this setting permanent, add 'set debuginfod enabled on' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+Running main() from gmock_main.cc
+Note: Google Test filter = BPlusTreeContentionTest.BPlusTreeContentionBenchmark
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BPlusTreeContentionTest
+[ RUN      ] BPlusTreeContentionTest.BPlusTreeContentionBenchmark
+This test will see how your B+ tree performance differs with and without contention.
+If your submission timeout, segfault, or didn't implement lock crabbing, we will manually deduct all concurrent test points (maximum 25).
+left_node_size = 2
+iter: 0
+
+Breakpoint 2, bustub::BPlusTreeLockBenchmarkCall (num_threads=32, leaf_node_size=2, with_global_mutex=true) at /home/empty--terrain/BPT/test/storage/b_plus_tree_contention_test.cpp:23
+23      {
+(gdb) continue
+Continuing.
+created bpt
+start insert
+[New Thread 0x7fffb41fd6c0 (LWP 1382392)]
+[New Thread 0x7fffb39fc6c0 (LWP 1382393)]
+[New Thread 0x7fffb26f26c0 (LWP 1382394)]
+[New Thread 0x7fffb13e86c0 (LWP 1382395)]
+[New Thread 0x7fffb00de6c0 (LWP 1382396)]
+flush leaf_page
+end flush
+[New Thread 0x7fffaedd46c0 (LWP 1382397)]
+flush right_leaf_id
+end flush
+[New Thread 0x7fffadaca6c0 (LWP 1382398)]
+flush new_root_id
+end flush
+[Switching to Thread 0x7fffb00de6c0 (LWP 1382396)]
+
+Thread 6 "b_plus_tree_con" hit Breakpoint 1.2, 0x00007ffff7854250 in __interceptor_trampoline___cxa_throw () from /lib/x86_64-linux-gnu/libasan.so.8
+(gdb) bt
+#0  0x00007ffff7854250 in __interceptor_trampoline___cxa_throw () from /lib/x86_64-linux-gnu/libasan.so.8
+#1  0x00007ffff74aa2a5 in std::__throw_system_error (__i=35) at ../../../../../src/libstdc++-v3/src/c++11/system_error.cc:595
+#2  0x00005555556972a2 in std::__shared_mutex_pthread::lock (this=0x522000000120) at /usr/include/c++/13/shared_mutex:198
+#3  0x0000555555697398 in std::shared_mutex::lock (this=0x522000000120) at /usr/include/c++/13/shared_mutex:423
+#4  0x00005555556973f8 in bustub::ReaderWriterLatch::WLock (this=0x522000000120) at /home/empty--terrain/BPT/src/include/common/rwlatch.h:35
+#5  0x000055555569745c in bustub::Page::WLatch (this=0x522000000108) at /home/empty--terrain/BPT/src/include/storage/page/page.h:63
+#6  0x0000555555696df9 in bustub::WritePageGuard::WritePageGuard (this=0x7fffae0d48a0, bpm=0x50f000000040, page=0x522000000108) at /home/empty--terrain/BPT/src/storage/page/page_guard.cpp:92
+#7  0x00005555555cb26c in bustub::BufferPoolManager::FetchPageWrite (this=0x50f000000040, page_id=0) at /home/empty--terrain/BPT/src/buffer/buffer_pool_manager.cpp:250
+#8  0x000055555560d902 in bustub::BPlusTree<bustub::GenericKey<8ul>, bustub::RID, bustub::GenericComparator<8ul> >::Insert (this=0x7ffff5401e80, key=..., value=..., txn=0x511000039fc0)
+    at /home/empty--terrain/BPT/src/storage/index/b_plus_tree.cpp:370
+#9  0x00005555555a1207 in operator() (__closure=0x504000000798) at /home/empty--terrain/BPT/test/storage/b_plus_tree_contention_test.cpp:65
+#10 0x00005555555a4b96 in std::__invoke_impl<void, bustub::BPlusTreeLockBenchmarkCall(size_t, int, bool)::<lambda()> >(std::__invoke_other, struct {...} &&) (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+#11 0x00005555555a4b59 in std::__invoke<bustub::BPlusTreeLockBenchmarkCall(size_t, int, bool)::<lambda()> >(struct {...} &&) (__fn=...) at /usr/include/c++/13/bits/invoke.h:96
+#12 0x00005555555a4b06 in std::thread::_Invoker<std::tuple<bustub::BPlusTreeLockBenchmarkCall(size_t, int, bool)::<lambda()> > >::_M_invoke<0>(std::_Index_tuple<0>) (this=0x504000000798)
+    at /usr/include/c++/13/bits/std_thread.h:292
+#13 0x00005555555a4ada in std::thread::_Invoker<std::tuple<bustub::BPlusTreeLockBenchmarkCall(size_t, int, bool)::<lambda()> > >::operator()(void) (this=0x504000000798)
+    at /usr/include/c++/13/bits/std_thread.h:299
+#14 0x00005555555a4abe in std::thread::_State_impl<std::thread::_Invoker<std::tuple<bustub::BPlusTreeLockBenchmarkCall(size_t, int, bool)::<lambda()> > > >::_M_run(void) (this=0x504000000790)
+    at /usr/include/c++/13/bits/std_thread.h:244
+#15 0x00007ffff74ecdb4 in std::execute_native_thread_routine (__p=__p@entry=0x504000000790) at ../../../../../src/libstdc++-v3/src/c++11/thread.cc:104
+#16 0x00007ffff785ea42 in asan_thread_start (arg=0x7ffff7edc000) at ../../../../src/libsanitizer/asan/asan_interceptors.cpp:234
+#17 0x00007ffff709caa4 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#18 0x00007ffff7129c3c in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+(gdb) continue
+Continuing.
+[New Thread 0x7fffac7c06c0 (LWP 1382399)]
+[New Thread 0x7fffab4b66c0 (LWP 1382488)]
+
+Thread 6 "b_plus_tree_con" hit Breakpoint 1.1, __cxxabiv1::__cxa_throw (obj=0x50e000027180, tinfo=0x7ffff76704f8 <typeinfo for std::system_error>, dest=0x7ffff74ecb20 <std::system_error::~system_error()>)
+    at ../../../../src/libstdc++-v3/libsupc++/eh_throw.cc:80
+warning: 80     ../../../../src/libstdc++-v3/libsupc++/eh_throw.cc: No such file or directory
+(gdb) bt
+#0  __cxxabiv1::__cxa_throw (obj=0x50e000027180, tinfo=0x7ffff76704f8 <typeinfo for std::system_error>, dest=0x7ffff74ecb20 <std::system_error::~system_error()>)
+    at ../../../../src/libstdc++-v3/libsupc++/eh_throw.cc:80
+#1  0x00007ffff74aa2a5 in std::__throw_system_error (__i=35) at ../../../../../src/libstdc++-v3/src/c++11/system_error.cc:595
+#2  0x00005555556972a2 in std::__shared_mutex_pthread::lock (this=0x522000000120) at /usr/include/c++/13/shared_mutex:198
+#3  0x0000555555697398 in std::shared_mutex::lock (this=0x522000000120) at /usr/include/c++/13/shared_mutex:423
+#4  0x00005555556973f8 in bustub::ReaderWriterLatch::WLock (this=0x522000000120) at /home/empty--terrain/BPT/src/include/common/rwlatch.h:35
+#5  0x000055555569745c in bustub::Page::WLatch (this=0x522000000108) at /home/empty--terrain/BPT/src/include/storage/page/page.h:63
+#6  0x0000555555696df9 in bustub::WritePageGuard::WritePageGuard (this=0x7fffae0d48a0, bpm=0x50f000000040, page=0x522000000108) at /home/empty--terrain/BPT/src/storage/page/page_guard.cpp:92
+#7  0x00005555555cb26c in bustub::BufferPoolManager::FetchPageWrite (this=0x50f000000040, page_id=0) at /home/empty--terrain/BPT/src/buffer/buffer_pool_manager.cpp:250
+#8  0x000055555560d902 in bustub::BPlusTree<bustub::GenericKey<8ul>, bustub::RID, bustub::GenericComparator<8ul> >::Insert (this=0x7ffff5401e80, key=..., value=..., txn=0x511000039fc0)
+    at /home/empty--terrain/BPT/src/storage/index/b_plus_tree.cpp:370
+#9  0x00005555555a1207 in operator() (__closure=0x504000000798) at /home/empty--terrain/BPT/test/storage/b_plus_tree_contention_test.cpp:65
+#10 0x00005555555a4b96 in std::__invoke_impl<void, bustub::BPlusTreeLockBenchmarkCall(size_t, int, bool)::<lambda()> >(std::__invoke_other, struct {...} &&) (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+#11 0x00005555555a4b59 in std::__invoke<bustub::BPlusTreeLockBenchmarkCall(size_t, int, bool)::<lambda()> >(struct {...} &&) (__fn=...) at /usr/include/c++/13/bits/invoke.h:96
+#12 0x00005555555a4b06 in std::thread::_Invoker<std::tuple<bustub::BPlusTreeLockBenchmarkCall(size_t, int, bool)::<lambda()> > >::_M_invoke<0>(std::_Index_tuple<0>) (this=0x504000000798)
+    at /usr/include/c++/13/bits/std_thread.h:292
+#13 0x00005555555a4ada in std::thread::_Invoker<std::tuple<bustub::BPlusTreeLockBenchmarkCall(size_t, int, bool)::<lambda()> > >::operator()(void) (this=0x504000000798)
+    at /usr/include/c++/13/bits/std_thread.h:299
+#14 0x00005555555a4abe in std::thread::_State_impl<std::thread::_Invoker<std::tuple<bustub::BPlusTreeLockBenchmarkCall(size_t, int, bool)::<lambda()> > > >::_M_run(void) (this=0x504000000790)
+    at /usr/include/c++/13/bits/std_thread.h:244
+#15 0x00007ffff74ecdb4 in std::execute_native_thread_routine (__p=__p@entry=0x504000000790) at ../../../../../src/libstdc++-v3/src/c++11/thread.cc:104
+#16 0x00007ffff785ea42 in asan_thread_start (arg=0x7ffff7edc000) at ../../../../src/libsanitizer/asan/asan_interceptors.cpp:234
+#17 0x00007ffff709caa4 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#18 0x00007ffff7129c3c in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+(gdb) continue
+Continuing.
+[New Thread 0x7fffaacb56c0 (LWP 1382489)]
+[New Thread 0x7fffa99ab6c0 (LWP 1382520)]
+[New Thread 0x7fffa7b986c0 (LWP 1382521)]
+[New Thread 0x7fffa688e6c0 (LWP 1382522)]
+[New Thread 0x7fffa55846c0 (LWP 1382523)]
+[New Thread 0x7fffa427a6c0 (LWP 1382524)]
+Stack trace (most recent call last) in thread 1382396:
+[New Thread 0x7fffa3a796c0 (LWP 1382525)]
+#25   Object "[0xffffffffffffffff]", at 0xffffffffffffffff, in 
+#24   Object "/lib/x86_64-linux-gnu/libc.so.6", at 0x7ffff7129c3b, in 
+#23   Object "/lib/x86_64-linux-gnu/libc.so.6", at 0x7ffff709caa3, in 
+#22   Object "/lib/x86_64-linux-gnu/libasan.so.8", at 0x7ffff785ea41, in 
+#21   Object "/lib/x86_64-linux-gnu/libstdc++.so.6", at 0x7ffff74ecdb3, in 
+#20   Object "/home/empty--terrain/BPT/build/test/b_plus_tree_contention_test", at 0x5555555a4abd, in 
+#19   Object "/home/empty--terrain/BPT/build/test/b_plus_tree_contention_test", at 0x5555555a4ad9, in 
+#18   Object "/home/empty--terrain/BPT/build/test/b_plus_tree_contention_test", at 0x5555555a4b05, in 
+#17   Object "/home/empty--terrain/BPT/build/test/b_plus_tree_contention_test", at 0x5555555a4b58, in 
+#16   Object "/home/empty--terrain/BPT/build/test/b_plus_tree_contention_test", at 0x5555555a4b95, in 
+#15   Object "/home/empty--terrain/BPT/build/test/b_plus_tree_contention_test", at 0x5555555a1206, in 
+#14   Object "/home/empty--terrain/BPT/build/test/b_plus_tree_contention_test", at 0x55555560d901, in 
+#13   Object "/home/empty--terrain/BPT/build/test/b_plus_tree_contention_test", at 0x5555555cb26b, in 
+#12   Object "/home/empty--terrain/BPT/build/test/b_plus_tree_contention_test", at 0x555555696df8, in 
+#11   Object "/home/empty--terrain/BPT/build/test/b_plus_tree_contention_test", at 0x55555569745b, in 
+#10   Object "/home/empty--terrain/BPT/build/test/b_plus_tree_contention_test", at 0x5555556973f7, in 
+#9    Object "/home/empty--terrain/BPT/build/test/b_plus_tree_contention_test", at 0x555555697397, in 
+#8    Object "/home/empty--terrain/BPT/build/test/b_plus_tree_contention_test", at 0x5555556972a1, in 
+[New Thread 0x7fffa1c666c0 (LWP 1382526)]
+#7    Object "/lib/x86_64-linux-gnu/libstdc++.so.6", at 0x7ffff74aa2a4, in std::__throw_system_error(int)
+#6    Object "/lib/x86_64-linux-gnu/libstdc++.so.6", at 0x7ffff74bb390, in __cxa_throw
+#5    Object "/lib/x86_64-linux-gnu/libstdc++.so.6", at 0x7ffff74a5a54, in std::terminate()
+#4    Object "/lib/x86_64-linux-gnu/libstdc++.so.6", at 0x7ffff74bb0d9, in 
+#3    Object "/home/empty--terrain/BPT/build/test/b_plus_tree_contention_test", at 0x5555555b9197, in 
+#2    Object "/home/empty--terrain/BPT/build/test/b_plus_tree_contention_test", at 0x5555555b8fd6, in 
+#1    Object "/home/empty--terrain/BPT/build/test/b_plus_tree_contention_test", at 0x5555555b4360, in 
+#0    Object "/home/empty--terrain/BPT/build/test/b_plus_tree_contention_test", at 0x5555555b9c3c, in 
+[New Thread 0x7fffa095c6c0 (LWP 1382527)]
+
+Thread 6 "b_plus_tree_con" received signal SIGABRT, Aborted.
+Download failed: Invalid argument.  Continuing without source file ./nptl/./nptl/pthread_kill.c.
+__pthread_kill_implementation (no_tid=0, signo=6, threadid=<optimized out>) at ./nptl/pthread_kill.c:44
+warning: 44     ./nptl/pthread_kill.c: No such file or directory
+(gdb) bt
+#0  __pthread_kill_implementation (no_tid=0, signo=6, threadid=<optimized out>) at ./nptl/pthread_kill.c:44
+#1  __pthread_kill_internal (signo=6, threadid=<optimized out>) at ./nptl/pthread_kill.c:78
+#2  __GI___pthread_kill (threadid=<optimized out>, signo=signo@entry=6) at ./nptl/pthread_kill.c:89
+#3  0x00007ffff704527e in __GI_raise (sig=sig@entry=6) at ../sysdeps/posix/raise.c:26
+#4  0x00007ffff70288ff in __GI_abort () at ./stdlib/abort.c:79
+#5  0x00005555555b9134 in TerminateHandler::TerminateHandler()::{lambda()#1}::operator()() const (__closure=0x0) at /home/empty--terrain/BPT/tools/backtrace.cpp:22
+#6  0x00005555555b9198 in TerminateHandler::TerminateHandler()::{lambda()#1}::_FUN() () at /home/empty--terrain/BPT/tools/backtrace.cpp:23
+#7  0x00007ffff74bb0da in __cxxabiv1::__terminate (handler=<optimized out>) at ../../../../src/libstdc++-v3/libsupc++/eh_terminate.cc:48
+#8  0x00007ffff74a5a55 in std::terminate () at ../../../../src/libstdc++-v3/libsupc++/eh_terminate.cc:58
+#9  0x00007ffff74bb391 in __cxxabiv1::__cxa_throw (obj=<optimized out>, tinfo=0x7ffff76704f8 <typeinfo for std::system_error>, dest=0x7ffff74ecb20 <std::system_error::~system_error()>)
+    at ../../../../src/libstdc++-v3/libsupc++/eh_throw.cc:98
+#10 0x00007ffff74aa2a5 in std::__throw_system_error (__i=35) at ../../../../../src/libstdc++-v3/src/c++11/system_error.cc:595
+#11 0x00005555556972a2 in std::__shared_mutex_pthread::lock (this=0x522000000120) at /usr/include/c++/13/shared_mutex:198
+#12 0x0000555555697398 in std::shared_mutex::lock (this=0x522000000120) at /usr/include/c++/13/shared_mutex:423
+#13 0x00005555556973f8 in bustub::ReaderWriterLatch::WLock (this=0x522000000120) at /home/empty--terrain/BPT/src/include/common/rwlatch.h:35
+#14 0x000055555569745c in bustub::Page::WLatch (this=0x522000000108) at /home/empty--terrain/BPT/src/include/storage/page/page.h:63
+#15 0x0000555555696df9 in bustub::WritePageGuard::WritePageGuard (this=0x7fffae0d48a0, bpm=0x50f000000040, page=0x522000000108) at /home/empty--terrain/BPT/src/storage/page/page_guard.cpp:92
+#16 0x00005555555cb26c in bustub::BufferPoolManager::FetchPageWrite (this=0x50f000000040, page_id=0) at /home/empty--terrain/BPT/src/buffer/buffer_pool_manager.cpp:250
+#17 0x000055555560d902 in bustub::BPlusTree<bustub::GenericKey<8ul>, bustub::RID, bustub::GenericComparator<8ul> >::Insert (this=0x7ffff5401e80, key=..., value=..., txn=0x511000039fc0)
+    at /home/empty--terrain/BPT/src/storage/index/b_plus_tree.cpp:370
+#18 0x00005555555a1207 in operator() (__closure=0x504000000798) at /home/empty--terrain/BPT/test/storage/b_plus_tree_contention_test.cpp:65
+#19 0x00005555555a4b96 in std::__invoke_impl<void, bustub::BPlusTreeLockBenchmarkCall(size_t, int, bool)::<lambda()> >(std::__invoke_other, struct {...} &&) (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+#20 0x00005555555a4b59 in std::__invoke<bustub::BPlusTreeLockBenchmarkCall(size_t, int, bool)::<lambda()> >(struct {...} &&) (__fn=...) at /usr/include/c++/13/bits/invoke.h:96
+#21 0x00005555555a4b06 in std::thread::_Invoker<std::tuple<bustub::BPlusTreeLockBenchmarkCall(size_t, int, bool)::<lambda()> > >::_M_invoke<0>(std::_Index_tuple<0>) (this=0x504000000798)
+    at /usr/include/c++/13/bits/std_thread.h:292
+#22 0x00005555555a4ada in std::thread::_Invoker<std::tuple<bustub::BPlusTreeLockBenchmarkCall(size_t, int, bool)::<lambda()> > >::operator()(void) (this=0x504000000798)
+    at /usr/include/c++/13/bits/std_thread.h:299
+#23 0x00005555555a4abe in std::thread::_State_impl<std::thread::_Invoker<std::tuple<bustub::BPlusTreeLockBenchmarkCall(size_t, int, bool)::<lambda()> > > >::_M_run(void) (this=0x504000000790)
+    at /usr/include/c++/13/bits/std_thread.h:244
+#24 0x00007ffff74ecdb4 in std::execute_native_thread_routine (__p=__p@entry=0x504000000790) at ../../../../../src/libstdc++-v3/src/c++11/thread.cc:104
+#25 0x00007ffff785ea42 in asan_thread_start (arg=0x7ffff7edc000) at ../../../../src/libsanitizer/asan/asan_interceptors.cpp:234
+#26 0x00007ffff709caa4 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#27 0x00007ffff7129c3c in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+(gdb) continue
+Continuing.
+Couldn't get registers: No such process.
+(gdb) Cannot find user-level thread for LWP 1382528: generic error
+(gdb) continue
+Continuing.
+/build/gdb-1WjiBe/gdb-15.0.50.20240403/gdb/infrun.c:447: internal-error: follow_fork_inferior: Assertion `fork_kind == TARGET_WAITKIND_FORKED || fork_kind == TARGET_WAITKIND_VFORKED' failed.
+A problem internal to GDB has been detected,
+further debugging may prove unreliable.
+----- Backtrace -----
+0x637057c6abc6 ???
+0x637058086dd4 ???
+0x6370580870d0 ???
+0x63705821af74 ???
+0x637057e10372 ???
+0x637057e11976 ???
+0x637057e16281 ???
+0x637057df7ad7 ???
+0x637057ca3464 ???
+0x63705800d727 ???
+0x637057d8e967 ???
+0x637057d90143 ???
+0x637057d8f332 ???
+0x73b519f629e4 ???
+0x637057d8f495 ???
+0x637057d8f663 ???
+0x637058050a5c ???
+0x63705821b975 ???
+0x63705821c4f7 ???
+0x637057e6aea9 ???
+0x637057e6df04 ???
+0x637057bb4dab ???
+0x73b518a2a1c9 __libc_start_call_main
+        ../sysdeps/nptl/libc_start_call_main.h:58
+0x73b518a2a28a __libc_start_main_impl
+        ../csu/libc-start.c:360
+0x637057bc31f4 ???
+0xffffffffffffffff ???
+---------------------
+/build/gdb-1WjiBe/gdb-15.0.50.20240403/gdb/infrun.c:447: internal-error: follow_fork_inferior: Assertion `fork_kind == TARGET_WAITKIND_FORKED || fork_kind == TARGET_WAITKIND_VFORKED' failed.
+A problem internal to GDB has been detected,
+further debugging may prove unreliable.
+Quit this debugging session? (y or n) y
+
+This is a bug, please report it.  For instructions, see:
+<https://www.gnu.org/software/gdb/bugs/>.
+
+/build/gdb-1WjiBe/gdb-15.0.50.20240403/gdb/infrun.c:447: internal-error: follow_fork_inferior: Assertion `fork_kind == TARGET_WAITKIND_FORKED || fork_kind == TARGET_WAITKIND_VFORKED' failed.
+A problem internal to GDB has been detected,
+further debugging may prove unreliable.
+Create a core file of GDB? (y or n) y
+Aborted (core dumped)
