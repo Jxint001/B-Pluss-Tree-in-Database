@@ -269,14 +269,26 @@ TEST(BPlusTreeTests, DeleteTest4)
     tree.Insert(index_key, rid, transaction);
   }
 
+  // std::cout << "-----------" << std::endl;
+  // tree.Print(bpm);
+  // std::cout << "-----------" << std::endl;
+
   index_key.SetFromInteger(10);
   tree.Remove(index_key, transaction);
+  // std::cout << "-----------" << std::endl;
+  // tree.Print(bpm);
+  // std::cout << "-----------" << std::endl;
 
   std::vector<int64_t> remove_keys = {2, 4};
   for (auto key : remove_keys)
   {
     index_key.SetFromInteger(key);
+  // std::cout << "[To Remove] " << index_key << std::endl;
     tree.Remove(index_key, transaction);
+  // std::cout << "[Removed] " << index_key << std::endl;
+  // std::cout << "-----------" << std::endl;
+  // tree.Print(bpm);
+  // std::cout << "-----------" << std::endl;
   }
 
   int64_t size = 0;
@@ -287,10 +299,11 @@ TEST(BPlusTreeTests, DeleteTest4)
     std::vector<RID> rids;
     index_key.SetFromInteger(key);
     is_present = tree.GetValue(index_key, &rids);
-
+//std::cout << "Cheking " << index_key << std::endl;
     if (std::find(remove_keys.begin(), remove_keys.end(), key) != remove_keys.end()) {
       EXPECT_EQ(is_present, false);
     } else {
+     // std::cout << index_key << " should exist" << std::endl;
       EXPECT_EQ(is_present, true);
       EXPECT_EQ(rids.size(), 1);
       EXPECT_EQ(rids[0].GetPageId(), 0);

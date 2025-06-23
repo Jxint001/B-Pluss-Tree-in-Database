@@ -73,11 +73,26 @@ class BPlusTree {
   auto IsEmpty() const -> bool;
 
   // Insert a key-value pair into this B+ tree.
+  void InsertToLeaf(LeafPage *node, int x, const KeyType& key, const ValueType& value);
+  void InsertToInternal(InternalPage *node, int x /*cannot be 0*/ , const KeyType& key, page_id_t value);
   auto BasicInsert(const KeyType &key, const ValueType &value, Transaction *txn, Context& ctx) -> bool;
   auto Insert(const KeyType &key, const ValueType &value, Transaction *txn = nullptr) -> bool;
 
   // Remove a key and its value from this B+ tree.
+  void EraseFromLeaf(LeafPage *node, int x);
+  void EraseFromInternal(InternalPage *node, int x);
+  void BorrowFromLeaf(LeafPage* l_node, LeafPage* r_node, int sibling_dir, InternalPage *parent, int y /* position of r_node*/);
+  page_id_t MergeLeaf(WritePageGuard& l_node_guard, WritePageGuard& r_node_guard, InternalPage *parent, int x /* position of l_node */);
+  page_id_t MergeInternal(WritePageGuard& l_node_guard, WritePageGuard& r_node_guard, InternalPage *parent, int x);
+  void BorrowFromInternal(InternalPage *l_node, InternalPage *r_node, int sibling_dir, InternalPage *parent, int y /* position of r_node*/);
+  void BasicRemove(const KeyType &key, Transaction *txn, Context& ctx);
   void Remove(const KeyType &key, Transaction *txn);
+
+  /*addition*/
+  void VALIDATE_NODE(InternalPage* node);
+   std::tuple<KeyType, page_id_t, page_id_t> SplitAtLeaf(WritePageGuard& node_guard, int x, const KeyType& key, const ValueType& value);
+    std::tuple<KeyType, page_id_t, page_id_t> SplitAtInternal(WritePageGuard& node_guard, int x, const KeyType& key, page_id_t value /* child page_id */);
+    page_id_t PromoteRoot(const KeyType& key, page_id_t l_child, page_id_t r_child);
 
   // Return the value associated with a given key
   auto GetValue(const KeyType &key, std::vector<ValueType> *result, Transaction *txn = nullptr) -> bool;
