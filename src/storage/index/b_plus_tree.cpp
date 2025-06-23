@@ -152,15 +152,13 @@ auto BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transact
 
     /* Insert the pair. */
     leaf_page->SetAt(0, key, value);
-    //std::cout << "flush leaf_page" << std::endl;
     bpm_->FlushPage(leaf_id);
-    //std::cout << "end flush" << std::endl;
+
 
     /* Change the root page id to its real id. */
-
-      header_page.template AsMut<BPlusTreeHeaderPage>()->root_page_id_ = leaf_id;
-      ctx.root_page_id_ = leaf_id;
-      header_page.Drop();
+    header_page.template AsMut<BPlusTreeHeaderPage>()->root_page_id_ = leaf_id;
+    ctx.root_page_id_ = leaf_id;
+    header_page.Drop();
     
     ctx.header_page_->Drop();
     return true;
@@ -205,7 +203,6 @@ auto BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transact
     }
 
     ctx.write_set_.push_back(std::move(child_guard));
- //   path.push_back({child_page_id, idx});
     cur_id = child_page_id;
   }
 
@@ -263,11 +260,9 @@ auto BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transact
   KeyType right_key = right_page->KeyAt(0);
   bool splitup = true;
 
-  //std::cout << "flush right_leaf_id" << std::endl;
+
   bpm_->FlushPage(right_leaf_id);
-  //std::cout << "end flush" << std::endl;
-  //new_leaf_gurad.Drop();
-  //leaf_guard.Drop();
+
 
   while (splitup && !path.empty()) {
     auto [id, child_idx] = path.back();  path.pop_back();
@@ -339,9 +334,9 @@ auto BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transact
     right_leaf_id = tmp_id;
     left_id = parent_guard.PageId();
 
-    //std::cout << "flush tmp_id" << std::endl;
+
     bpm_->FlushPage(tmp_id);
-    //std::cout << "end flush" << std::endl;
+
     new_parent_guard.Drop();
     parent_guard.Drop();
   }
@@ -362,9 +357,9 @@ auto BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transact
     new_root_page->SetValueAt(1, right_leaf_id);
     assert(right_leaf_id != 0);
 
-    //std::cout << "flush new_root_id" << std::endl;
+
     bpm_->FlushPage(new_root_id);
-    //std::cout << "end flush" << std::endl;
+
     new_root_guard.Drop();
     
       header_page.template AsMut<BPlusTreeHeaderPage>()->root_page_id_ = new_root_id;
@@ -435,9 +430,9 @@ page_id_t BPLUSTREE_TYPE::MergeLeaf(WritePageGuard& l_node_guard, WritePageGuard
   for (int j = 0; j < r_node->GetSize(); j++) {
     node->SetAt(j + l_size, r_node->KeyAt(j), r_node->ValueAt(j));
   }
-  //std::cout << "flush node_id" << std::endl;
+
   bpm_->FlushPage(node_id);
-  //std::cout << "end flush" << std::endl;
+
 
   EraseFromInternal(parent, x + 1);
   EraseFromInternal(parent, x);
@@ -476,9 +471,8 @@ page_id_t BPLUSTREE_TYPE::MergeInternal(WritePageGuard& l_node_guard, WritePageG
 
   parent->SetKeyAt(x, node->KeyAt(0));
   parent->SetValueAt(x, node_id);
-  //std::cout << "flush node_id 2" << std::endl;
+
   bpm_->FlushPage(node_id);
-  //std::cout << "end flush" << std::endl;
   return l_node_id;
 }
 
@@ -499,7 +493,6 @@ void BPLUSTREE_TYPE::BorrowFromInternal(InternalPage *l_node, InternalPage *r_no
 INDEX_TEMPLATE_ARGUMENTS
 void BPLUSTREE_TYPE::Remove(const KeyType& key, Transaction* txn) {
   /* Add the root to write guard set. */
-  // //std::cout << "Basic" << std::endl;
   Context ctx;
 
   auto header_read = bpm_->FetchPageWrite(header_page_id_);
@@ -557,11 +550,6 @@ void BPLUSTREE_TYPE::Remove(const KeyType& key, Transaction* txn) {
     path.push_back({child_page_id, idx});
     cur_id = child_page_id;
   }
-// //std::cout << "---print path---" << std::endl;
-// for (auto & p : path) {
-//   //std::cout << "page " << p.first << " is the " << p.second << " child of parent" << std::endl;
-// }
-// //std::cout << "---end print path" << std::endl;
 
   /* Get leaf. */
   WritePageGuard leaf_guard = std::move(ctx.write_set_.back());  ctx.write_set_.pop_back();
@@ -682,90 +670,6 @@ void BPLUSTREE_TYPE::Remove(const KeyType& key, Transaction* txn) {
   for (auto &wg : ctx.write_set_) wg.Drop();
   ctx.write_set_.clear();
 }
-
-// INDEX_TEMPLATE_ARGUMENTS
-// void BPLUSTREE_TYPE::Remove(const KeyType& key, Transaction* txn)
-// {
-//   Context ctx;
-//   {
-//     auto header_read = bpm_->FetchPageRead(header_page_id_);
-//     auto hdr = header_read.template As<const BPlusTreeHeaderPage>();
-//     ctx.root_page_id_ = hdr->root_page_id_;
-//   }
-  
-//   if (ctx.root_page_id_ == INVALID_PAGE_ID) { return; }
-
-//   bool root_is_leaf = false;
-
-//   {
-//     auto header_page_gurad = bpm_->FetchPageWrite(header_page_id_);
-//     auto hdr = header_page_gurad.template AsMut<BPlusTreeHeaderPage>();
-//     auto root_guard = bpm_->FetchPageWrite(hdr->root_page_id_);
-//     auto root_page = root_guard.template AsMut<BPlusTreePage>();
-//     if (root_page->IsLeafPage()) {
-//       if (root_page->GetSize() == 1) {
-//         bpm_->DeletePage(hdr->root_page_id_);
-//         hdr->root_page_id_ = INVALID_PAGE_ID;
-//       }
-//       root_is_leaf = true;
-      
-//     }
-//   }
-
-//   /* Add the root to read guard set. */
-//   page_id_t cur_id = ctx.root_page_id_;
-//   ctx.read_set_.push_back(bpm_->FetchPageRead(cur_id));
-
-//   /* Go to the corresponding leaf page. */
-//   while (true) {
-//     auto &rg = ctx.read_set_.back();
-//     auto page = rg.template As<BPlusTreePage>();
-//     if (page->IsLeafPage()) {break; }
-
-//     auto internal = reinterpret_cast<const InternalPage*>(page);
-//     int idx = BinaryFind(internal, key);
-//     page_id_t child_page_id = internal->ValueAt(idx);
-
-//     /* Release parent's read guard -- optimisic. */
-//     rg.Drop();
-//     ctx.read_set_.pop_back();
-
-//     ReadPageGuard child_page = bpm_->FetchPageRead(child_page_id);
-//     ctx.read_set_.push_back(std::move(child_page));
-//   }
-
-//   /* Try to erase from leaf. */
-//   auto &leaf_read = ctx.read_set_.back();
-//   auto leaf_page = reinterpret_cast<const LeafPage*>(leaf_read.template As<BPlusTreePage>());
-//   int idx = BinaryFind(leaf_page, key);
-//   if (idx == -1 || comparator_(leaf_page->KeyAt(idx), key) != 0) {
-//     for (auto &rg : ctx.read_set_) rg.Drop();
-//     return; 
-//   }
-
-//   /* This deletion is safe (remove at pos idx in the leaf_page). */
-//   if (leaf_page->GetSize() > leaf_page->GetMinSize() || root_is_leaf) {
-//     page_id_t convert_to_wg = leaf_read.PageId();
-//     leaf_read.Drop();
-    
-//     WritePageGuard leaf_write = bpm_->FetchPageWrite(convert_to_wg);
-
-//     auto leaf = leaf_write.template AsMut<LeafPage>();
-//     if (leaf->GetSize() > leaf->GetMinSize() || root_is_leaf) {
-//           EraseFromLeaf(leaf, idx);
-//           leaf_write.Drop();
-//           return;
-//     }
-//     leaf_write.Drop();
-//   }
-
-//   /* Unsafe. */
-//   for (auto &rg : ctx.read_set_) rg.Drop();
-//   ctx.read_set_.clear();
-
-//   BasicRemove(key, txn, ctx);
-//   return;
-// }
 
 /*****************************************************************************
  * INDEX ITERATOR
