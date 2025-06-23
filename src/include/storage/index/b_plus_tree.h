@@ -88,12 +88,6 @@ class BPlusTree {
   void BasicRemove(const KeyType &key, Transaction *txn, Context& ctx);
   void Remove(const KeyType &key, Transaction *txn);
 
-  /*addition*/
-  void VALIDATE_NODE(InternalPage* node);
-   std::tuple<KeyType, page_id_t, page_id_t> SplitAtLeaf(WritePageGuard& node_guard, int x, const KeyType& key, const ValueType& value);
-    std::tuple<KeyType, page_id_t, page_id_t> SplitAtInternal(WritePageGuard& node_guard, int x, const KeyType& key, page_id_t value /* child page_id */);
-    page_id_t PromoteRoot(const KeyType& key, page_id_t l_child, page_id_t r_child);
-
   // Return the value associated with a given key
   auto GetValue(const KeyType &key, std::vector<ValueType> *result, Transaction *txn = nullptr) -> bool;
 
@@ -147,7 +141,7 @@ class BPlusTree {
    */
   void BatchOpsFromFile(const std::string &file_name, Transaction *txn = nullptr);
 
- private:
+ public:
   /* Debug Routines for FREE!! */
   void ToGraph(page_id_t page_id, const BPlusTreePage *page, std::ofstream &out);
 
