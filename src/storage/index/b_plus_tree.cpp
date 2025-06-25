@@ -218,7 +218,7 @@ auto BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transact
     return false;
   }
 
-  /* Due to the optimistic crabbing, I have to check whether leaf is full. */
+  /* Check whether leaf is full. */
    if (leaf->GetSize() < leaf->GetMaxSize()) {
     InsertToLeaf(leaf, idx, key, value);
     leaf_guard.Drop();
@@ -565,7 +565,7 @@ void BPLUSTREE_TYPE::Remove(const KeyType& key, Transaction* txn) {
     return;
   }
 
-  /* Due to the optimistic crabbing, I have to check whether leaf is safe. */
+  /* Check whether leaf is safe. */
   if (leaf->GetSize() > leaf->GetMinSize() || root_is_leaf) {
     EraseFromLeaf(leaf, idx);
     leaf_guard.Drop();
@@ -600,7 +600,7 @@ void BPLUSTREE_TYPE::Remove(const KeyType& key, Transaction* txn) {
     return;
   }
 
-   /* Merge with sibling and relink. */
+  /* Merge with sibling and relink. */
   if (dir > 0) {
     MergeLeaf(leaf_guard, sib_wg, parent, cur_pos);
   } else {
